@@ -11,6 +11,7 @@ import {
 import { Button } from '../../components/Button';
 import { Modal } from '../../components/Modal';
 import { Loading } from '../../components/Loading';
+import { SearchBar } from '../../components/SearchBar';
 import { formatCurrency } from '../../utils/formatCurrency';
 
 export function Admin() {
@@ -22,6 +23,7 @@ export function Admin() {
   const [deleting, setDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSignOut = async () => {
     await signOut();
@@ -92,22 +94,40 @@ export function Admin() {
           </div>
         </div>
 
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Buscar por nome..."
+          className="admin-search"
+        />
+
         {(error || actionError) && (
           <p className="error-message" role="alert">
             {error ?? actionError}
           </p>
         )}
 
-        {gifts.length === 0 ? (
-          <div className="admin-empty">
-            <p>Nenhum presente cadastrado ainda.</p>
-            <Button onClick={() => navigate('/admin/presentes/novo')}>
-              Adicionar primeiro presente
-            </Button>
-          </div>
-        ) : (
+        {(() => {
+          const filtered = gifts.filter((g) =>
+            !searchQuery.trim() ||
+            g.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
+          );
+          if (gifts.length === 0) return (
+            <div className="admin-empty">
+              <p>Nenhum presente cadastrado ainda.</p>
+              <Button onClick={() => navigate('/admin/presentes/novo')}>
+                Adicionar primeiro presente
+              </Button>
+            </div>
+          );
+          if (filtered.length === 0) return (
+            <div className="admin-empty">
+              <p>Nenhum presente encontrado para "{searchQuery}".</p>
+            </div>
+          );
+          return (
           <div className="admin-gifts-grid">
-            {gifts.map((gift) => {
+            {filtered.map((gift) => {
               const imageUrl = gift.image_path
                 ? getGiftImageUrl(gift.image_path)
                 : null;
@@ -175,7 +195,8 @@ export function Admin() {
               );
             })}
           </div>
-        )}
+          );
+        })()}
       </main>
 
       {deletingGift && (

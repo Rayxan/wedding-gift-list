@@ -6,6 +6,7 @@ import { setGiftPurchased } from '../../services/giftService';
 import { Header } from '../../components/Header';
 import { GiftSections } from '../../components/GiftSections';
 import { GiftFilters, priceInRange } from '../../components/GiftFilters';
+import { SearchBar } from '../../components/SearchBar';
 import { Loading } from '../../components/Loading';
 import { Modal } from '../../components/Modal';
 import { useGifts } from '../../hooks/useGifts';
@@ -19,6 +20,7 @@ export function Home() {
   const [confirmGift, setConfirmGift] = useState<Gift | null>(null);
   const [presentingId, setPresentingId] = useState<number | null>(null);
   const [selectedPriceRange, setSelectedPriceRange] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     getSettings()
@@ -53,6 +55,15 @@ export function Home() {
 
   if (settingsLoading || giftsLoading) {
     return <Loading fullscreen />;
+  }
+
+  function matchesSearch(gift: { name: string; description: string | null }, query: string): boolean {
+    const q = query.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      gift.name.toLowerCase().includes(q) ||
+      (gift.description?.toLowerCase().includes(q) ?? false)
+    );
   }
 
   const qrCodeUrl = settings?.pix_qr_code_path
@@ -113,14 +124,25 @@ export function Home() {
             <p className="error-message" role="alert">{giftsError}</p>
           ) : (
             <>
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                className="home-search"
+              />
               <GiftFilters
                 gifts={gifts}
                 selectedPriceRange={selectedPriceRange}
                 onPriceRangeChange={setSelectedPriceRange}
-                totalVisible={gifts.filter((g) => priceInRange(g.price, selectedPriceRange)).length}
+                totalVisible={gifts.filter((g) =>
+                  priceInRange(g.price, selectedPriceRange) &&
+                  matchesSearch(g, searchQuery)
+                ).length}
               />
               <GiftSections
-                gifts={gifts.filter((g) => priceInRange(g.price, selectedPriceRange))}
+                gifts={gifts.filter((g) =>
+                  priceInRange(g.price, selectedPriceRange) &&
+                  matchesSearch(g, searchQuery)
+                )}
                 onPresent={setConfirmGift}
                 presentingId={presentingId}
               />
