@@ -6,6 +6,7 @@ export interface Gift {
   image_path: string | null;
   product_url: string | null;
   purchased: boolean;
+  category: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -15,4 +16,5 @@ export interface GiftFormData {
   description: string;
   price: string;
   product_url: string;
+  category: string;
 }

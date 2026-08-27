@@ -36,7 +36,12 @@ export function GiftCard({ gift, onPresent, presentingId }: GiftCardProps) {
       </div>
 
       <div className="gift-card__body">
-        <h2 className="gift-card__name">{gift.name}</h2>
+        <div className="gift-card__name-row">
+          <h2 className="gift-card__name">{gift.name}</h2>
+          {gift.category && (
+            <span className="gift-card__category">{gift.category}</span>
+          )}
+        </div>
 
         {gift.description && (
           <p className="gift-card__description">{gift.description}</p>

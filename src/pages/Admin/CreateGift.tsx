@@ -20,6 +20,7 @@ export function CreateGift() {
           description: data.description.trim() || null,
           price: parseFloat(data.price),
           product_url: data.product_url.trim() || null,
+          category: data.category.trim() || null,
           purchased: false,
           image_path: null,
         },

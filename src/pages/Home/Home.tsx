@@ -5,6 +5,7 @@ import { getSettings, getQrCodeUrl, getHeaderImageUrl } from '../../services/set
 import { setGiftPurchased } from '../../services/giftService';
 import { Header } from '../../components/Header';
 import { GiftList } from '../../components/GiftList';
+import { GiftFilters, priceInRange } from '../../components/GiftFilters';
 import { Loading } from '../../components/Loading';
 import { Modal } from '../../components/Modal';
 import { useGifts } from '../../hooks/useGifts';
@@ -17,6 +18,8 @@ export function Home() {
 
   const [confirmGift, setConfirmGift] = useState<Gift | null>(null);
   const [presentingId, setPresentingId] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedPriceRange, setSelectedPriceRange] = useState('all');
 
   useEffect(() => {
     getSettings()
@@ -110,11 +113,29 @@ export function Home() {
           {giftsError ? (
             <p className="error-message" role="alert">{giftsError}</p>
           ) : (
-            <GiftList
-              gifts={gifts}
-              onPresent={setConfirmGift}
-              presentingId={presentingId}
-            />
+            <>
+              <GiftFilters
+                gifts={gifts}
+                selectedCategory={selectedCategory}
+                selectedPriceRange={selectedPriceRange}
+                onCategoryChange={setSelectedCategory}
+                onPriceRangeChange={setSelectedPriceRange}
+                totalVisible={gifts.filter(
+                  (g) =>
+                    (selectedCategory === 'all' || g.category === selectedCategory) &&
+                    priceInRange(g.price, selectedPriceRange)
+                ).length}
+              />
+              <GiftList
+                gifts={gifts.filter(
+                  (g) =>
+                    (selectedCategory === 'all' || g.category === selectedCategory) &&
+                    priceInRange(g.price, selectedPriceRange)
+                )}
+                onPresent={setConfirmGift}
+                presentingId={presentingId}
+              />
+            </>
           )}
         </div>
       </section>

@@ -42,6 +42,7 @@ export function EditGift() {
         description: data.description.trim() || null,
         price: parseFloat(data.price),
         product_url: data.product_url.trim() || null,
+        category: data.category.trim() || null,
       };
 
       // Image removed without replacement

@@ -18,6 +18,7 @@ export function GiftForm({ initialData, onSubmit, loading = false }: GiftFormPro
     description: initialData?.description ?? '',
     price: initialData?.price != null ? String(initialData.price) : '',
     product_url: initialData?.product_url ?? '',
+    category: initialData?.category ?? '',
   });
 
   const hasInitialImage = Boolean(initialData?.image_path);
@@ -121,6 +122,32 @@ export function GiftForm({ initialData, onSubmit, loading = false }: GiftFormPro
           rows={3}
           disabled={loading}
         />
+      </div>
+
+      {/* Categoria */}
+      <div className="form-group">
+        <label className="form-label" htmlFor="gf-category">Categoria</label>
+        <input
+          id="gf-category"
+          type="text"
+          list="gf-category-list"
+          className="form-input"
+          value={formData.category}
+          onChange={set('category')}
+          placeholder="Ex: Cozinha, Eletrônicos..."
+          disabled={loading}
+          autoComplete="off"
+        />
+        <datalist id="gf-category-list">
+          <option value="Cozinha" />
+          <option value="Sala" />
+          <option value="Quarto" />
+          <option value="Banheiro" />
+          <option value="Eletrodomésticos" />
+          <option value="Eletrônicos" />
+          <option value="Decoração" />
+          <option value="Outros" />
+        </datalist>
       </div>
 
       {/* Valor */}
