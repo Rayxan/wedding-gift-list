@@ -24,6 +24,7 @@ export function Admin() {
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [purchasedFilter, setPurchasedFilter] = useState<'all' | 'available' | 'purchased'>('all');
 
   const handleSignOut = async () => {
     await signOut();
@@ -101,6 +102,22 @@ export function Admin() {
           className="admin-search"
         />
 
+        <div className="admin-status-filter">
+          {([
+            { key: 'all',       label: 'Todos' },
+            { key: 'available', label: '🎁 Disponíveis' },
+            { key: 'purchased', label: '💕 Presenteados' },
+          ] as const).map((opt) => (
+            <button
+              key={opt.key}
+              className={`filter-chip${purchasedFilter === opt.key ? ' filter-chip--active' : ''}`}
+              onClick={() => setPurchasedFilter(opt.key)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
         {(error || actionError) && (
           <p className="error-message" role="alert">
             {error ?? actionError}
@@ -108,10 +125,15 @@ export function Admin() {
         )}
 
         {(() => {
-          const filtered = gifts.filter((g) =>
-            !searchQuery.trim() ||
-            g.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
-          );
+          const filtered = gifts.filter((g) => {
+            const matchesSearch = !searchQuery.trim() ||
+              g.name.toLowerCase().includes(searchQuery.toLowerCase().trim());
+            const matchesPurchased =
+              purchasedFilter === 'all' ||
+              (purchasedFilter === 'available' && !g.purchased) ||
+              (purchasedFilter === 'purchased' && g.purchased);
+            return matchesSearch && matchesPurchased;
+          });
           if (gifts.length === 0) return (
             <div className="admin-empty">
               <p>Nenhum presente cadastrado ainda.</p>

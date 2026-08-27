@@ -7,6 +7,7 @@ export interface Settings {
   header_image_path: string | null;
   whatsapp_groom: string | null;
   whatsapp_bride: string | null;
+  wedding_address: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -17,4 +18,5 @@ export interface SettingsFormData {
   pix_key: string;
   whatsapp_groom: string;
   whatsapp_bride: string;
+  wedding_address: string;
 }

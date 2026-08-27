@@ -5,7 +5,7 @@ import { getSettings, getQrCodeUrl, getHeaderImageUrl } from '../../services/set
 import { setGiftPurchased } from '../../services/giftService';
 import { Header } from '../../components/Header';
 import { GiftSections } from '../../components/GiftSections';
-import { GiftFilters, priceInRange } from '../../components/GiftFilters';
+import { GiftFilters, priceInRange, PurchasedFilter } from '../../components/GiftFilters';
 import { SearchBar } from '../../components/SearchBar';
 import { Loading } from '../../components/Loading';
 import { Modal } from '../../components/Modal';
@@ -20,7 +20,16 @@ export function Home() {
   const [confirmGift, setConfirmGift] = useState<Gift | null>(null);
   const [presentingId, setPresentingId] = useState<number | null>(null);
   const [selectedPriceRange, setSelectedPriceRange] = useState('all');
+  const [selectedPurchased, setSelectedPurchased] = useState<PurchasedFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showWelcome, setShowWelcome] = useState(
+    () => !sessionStorage.getItem('welcome-shown')
+  );
+
+  const handleCloseWelcome = () => {
+    sessionStorage.setItem('welcome-shown', '1');
+    setShowWelcome(false);
+  };
 
   useEffect(() => {
     getSettings()
@@ -63,6 +72,21 @@ export function Home() {
     return (
       gift.name.toLowerCase().includes(q) ||
       (gift.description?.toLowerCase().includes(q) ?? false)
+    );
+  }
+
+  function matchesPurchased(gift: { purchased: boolean }, filter: PurchasedFilter): boolean {
+    if (filter === 'available') return !gift.purchased;
+    if (filter === 'purchased') return gift.purchased;
+    return true;
+  }
+
+  function applyFilters(list: typeof gifts) {
+    return list.filter(
+      (g) =>
+        priceInRange(g.price, selectedPriceRange) &&
+        matchesSearch(g, searchQuery) &&
+        matchesPurchased(g, selectedPurchased)
     );
   }
 
@@ -117,6 +141,15 @@ export function Home() {
         </section>
       )}
 
+      {settings?.wedding_address && (
+        <div className="address-section" aria-label="Local do casamento">
+          <div className="address-section__content">
+            <span className="address-section__icon" aria-hidden="true">📍</span>
+            <p className="address-section__text">{settings.wedding_address}</p>
+          </div>
+        </div>
+      )}
+
       <section className="gifts-section" aria-label="Lista de presentes">
         <div className="container">
           <h2 className="gifts-section__title">Lista de Presentes</h2>
@@ -132,17 +165,13 @@ export function Home() {
               <GiftFilters
                 gifts={gifts}
                 selectedPriceRange={selectedPriceRange}
+                selectedPurchased={selectedPurchased}
                 onPriceRangeChange={setSelectedPriceRange}
-                totalVisible={gifts.filter((g) =>
-                  priceInRange(g.price, selectedPriceRange) &&
-                  matchesSearch(g, searchQuery)
-                ).length}
+                onPurchasedChange={setSelectedPurchased}
+                totalVisible={applyFilters(gifts).length}
               />
               <GiftSections
-                gifts={gifts.filter((g) =>
-                  priceInRange(g.price, selectedPriceRange) &&
-                  matchesSearch(g, searchQuery)
-                )}
+                gifts={applyFilters(gifts)}
                 onPresent={setConfirmGift}
                 presentingId={presentingId}
               />
@@ -154,7 +183,7 @@ export function Home() {
       {confirmGift && (
         <Modal
           title="Confirmar presente"
-          message={`Você vai dar "${confirmGift.name}" de presente? Após confirmar, somente os noivos poderão desfazer.`}
+          message={`Deseja presentear "${confirmGift.name}" ? Após confirmar, somente os noivos poderão desfazer.`}
           confirmLabel="Sim, vou dar este presente!"
           cancelLabel="Cancelar"
           onConfirm={handlePresentConfirm}
@@ -195,6 +224,17 @@ export function Home() {
             </a>
           )}
         </div>
+      )}
+
+      {showWelcome && (
+        <Modal
+          title="💌 Aviso importante"
+          message="Caso compre em sites ou fora da lista, avise os noivos!"
+          confirmLabel="Entendido!"
+          cancelLabel=""
+          onConfirm={handleCloseWelcome}
+          onCancel={handleCloseWelcome}
+        />
       )}
     </main>
   );

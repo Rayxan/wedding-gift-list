@@ -40,9 +40,11 @@ export function Modal({
         <h2 id="modal-title" className="modal__title">{title}</h2>
         <p className="modal__message">{message}</p>
         <div className="modal__actions">
-          <Button variant="ghost" onClick={onCancel} disabled={loading}>
-            {cancelLabel}
-          </Button>
+          {cancelLabel && (
+            <Button variant="ghost" onClick={onCancel} disabled={loading}>
+              {cancelLabel}
+            </Button>
+          )}
           <Button variant="danger" onClick={onConfirm} loading={loading}>
             {confirmLabel}
           </Button>

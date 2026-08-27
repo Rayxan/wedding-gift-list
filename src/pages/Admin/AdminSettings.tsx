@@ -42,6 +42,7 @@ export function AdminSettings() {
     pix_key: '',
     whatsapp_groom: '',
     whatsapp_bride: '',
+    wedding_address: '',
   });
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export function AdminSettings() {
             pix_key: data.pix_key ?? '',
             whatsapp_groom: data.whatsapp_groom ?? '',
             whatsapp_bride: data.whatsapp_bride ?? '',
+            wedding_address: data.wedding_address ?? '',
           });
           if (data.pix_qr_code_path) {
             setQrPreview(getQrCodeUrl(data.pix_qr_code_path));
@@ -236,6 +238,22 @@ export function AdminSettings() {
                   placeholder="Uma mensagem especial para os seus convidados..."
                   disabled={saving}
                 />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="cfg-address">
+                  Endereço do Casamento
+                </label>
+                <textarea
+                  id="cfg-address"
+                  className="form-input form-textarea"
+                  value={formData.wedding_address}
+                  onChange={set('wedding_address')}
+                  rows={3}
+                  placeholder="Ex: Rua das Flores, 123 — Salão Jardim das Rosas, São Paulo - SP"
+                  disabled={saving}
+                />
+                <p className="form-hint">Deixe em branco para não exibir.</p>
               </div>
 
               <div className="form-group">

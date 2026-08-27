@@ -15,17 +15,23 @@ export function priceInRange(price: number, rangeKey: string): boolean {
   return price >= range.min && price <= range.max;
 }
 
+export type PurchasedFilter = 'all' | 'available' | 'purchased';
+
 interface GiftFiltersProps {
   gifts: Gift[];
   selectedPriceRange: string;
+  selectedPurchased: PurchasedFilter;
   onPriceRangeChange: (range: string) => void;
+  onPurchasedChange: (status: PurchasedFilter) => void;
   totalVisible: number;
 }
 
 export function GiftFilters({
   gifts,
   selectedPriceRange,
+  selectedPurchased,
   onPriceRangeChange,
+  onPurchasedChange,
   totalVisible,
 }: GiftFiltersProps) {
   const categories = Array.from(
@@ -58,6 +64,25 @@ export function GiftFilters({
       )}
 
       <div className="gift-filters__row">
+        <span className="gift-filters__label">Status</span>
+        <div className="gift-filters__chips">
+          {([
+            { key: 'all',       label: 'Todos' },
+            { key: 'available', label: '🎁 Disponíveis' },
+            { key: 'purchased', label: '💕 Presenteados' },
+          ] as { key: PurchasedFilter; label: string }[]).map((opt) => (
+            <button
+              key={opt.key}
+              className={`filter-chip${selectedPurchased === opt.key ? ' filter-chip--active' : ''}`}
+              onClick={() => onPurchasedChange(opt.key)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="gift-filters__row">
         <span className="gift-filters__label">Preço</span>
         <div className="gift-filters__chips">
           {PRICE_RANGES.map((range) => (
@@ -74,9 +99,9 @@ export function GiftFilters({
 
       <div className="gift-filters__summary">
         <span>{totalVisible} presente{totalVisible !== 1 ? 's' : ''}</span>
-        {selectedPriceRange !== 'all' && (
-          <button className="gift-filters__clear" onClick={() => onPriceRangeChange('all')}>
-            Limpar filtro ✕
+        {(selectedPriceRange !== 'all' || selectedPurchased !== 'all') && (
+          <button className="gift-filters__clear" onClick={() => { onPriceRangeChange('all'); onPurchasedChange('all'); }}>
+            Limpar filtros ✕
           </button>
         )}
       </div>
