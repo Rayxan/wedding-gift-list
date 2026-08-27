@@ -1,5 +1,5 @@
 import { Gift } from '../types/gift';
-import { formatCurrency } from '../utils/formatCurrency';
+import { categorySlug } from './GiftSections';
 
 export const PRICE_RANGES = [
   { key: 'all',      label: 'Todos os preços', min: 0,    max: Infinity },
@@ -17,46 +17,38 @@ export function priceInRange(price: number, rangeKey: string): boolean {
 
 interface GiftFiltersProps {
   gifts: Gift[];
-  selectedCategory: string;
   selectedPriceRange: string;
-  onCategoryChange: (cat: string) => void;
   onPriceRangeChange: (range: string) => void;
   totalVisible: number;
 }
 
 export function GiftFilters({
   gifts,
-  selectedCategory,
   selectedPriceRange,
-  onCategoryChange,
   onPriceRangeChange,
   totalVisible,
 }: GiftFiltersProps) {
   const categories = Array.from(
     new Set(gifts.map((g) => g.category).filter((c): c is string => Boolean(c)))
-  ).sort();
+  );
 
-  const hasActiveFilter = selectedCategory !== 'all' || selectedPriceRange !== 'all';
-
-  if (categories.length === 0 && gifts.length === 0) return null;
+  const scrollTo = (cat: string) => {
+    const el = document.getElementById(categorySlug(cat));
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <div className="gift-filters">
       {categories.length > 0 && (
         <div className="gift-filters__row">
-          <span className="gift-filters__label">Categoria</span>
+          <span className="gift-filters__label">Ir para</span>
           <div className="gift-filters__chips">
-            <button
-              className={`filter-chip${selectedCategory === 'all' ? ' filter-chip--active' : ''}`}
-              onClick={() => onCategoryChange('all')}
-            >
-              Todas
-            </button>
             {categories.map((cat) => (
               <button
                 key={cat}
-                className={`filter-chip${selectedCategory === cat ? ' filter-chip--active' : ''}`}
-                onClick={() => onCategoryChange(cat)}
+                className="filter-chip filter-chip--nav"
+                onClick={() => scrollTo(cat)}
+                aria-label={`Ir para a seção ${cat}`}
               >
                 {cat}
               </button>
@@ -82,12 +74,9 @@ export function GiftFilters({
 
       <div className="gift-filters__summary">
         <span>{totalVisible} presente{totalVisible !== 1 ? 's' : ''}</span>
-        {hasActiveFilter && (
-          <button
-            className="gift-filters__clear"
-            onClick={() => { onCategoryChange('all'); onPriceRangeChange('all'); }}
-          >
-            Limpar filtros ✕
+        {selectedPriceRange !== 'all' && (
+          <button className="gift-filters__clear" onClick={() => onPriceRangeChange('all')}>
+            Limpar filtro ✕
           </button>
         )}
       </div>

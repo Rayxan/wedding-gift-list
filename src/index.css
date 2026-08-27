@@ -675,6 +675,17 @@ button {
   color: #fff;
 }
 
+/* Navigation chips (scroll-to) use secondary style */
+.filter-chip--nav {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.filter-chip--nav:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
 .filter-chip:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
@@ -701,6 +712,41 @@ button {
 }
 
 .gift-filters__clear:hover { opacity: 0.75; }
+
+/* =====================================================
+   GIFT SECTIONS
+===================================================== */
+.gift-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.gift-section__header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 1.5px solid var(--color-border);
+}
+
+.gift-section__title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.375rem, 3vw, 1.875rem);
+  font-weight: 400;
+  color: var(--color-text);
+  letter-spacing: 0.01em;
+}
+
+.gift-section__count {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+/* scroll-offset so sticky nav doesn't cover the heading */
+.gift-section { scroll-margin-top: 1.5rem; }
 
 /* =====================================================
    GIFT LIST
