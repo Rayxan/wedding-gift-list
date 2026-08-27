@@ -4,10 +4,14 @@ import { formatCurrency } from '../utils/formatCurrency';
 
 interface GiftCardProps {
   gift: Gift;
+  /** Fornecido apenas na página pública; abre confirmação de presente */
+  onPresent?: (gift: Gift) => void;
+  presentingId?: number | null;
 }
 
-export function GiftCard({ gift }: GiftCardProps) {
+export function GiftCard({ gift, onPresent, presentingId }: GiftCardProps) {
   const imageUrl = gift.image_path ? getGiftImageUrl(gift.image_path) : null;
+  const isPresenting = presentingId === gift.id;
 
   return (
     <article className={`gift-card${gift.purchased ? ' gift-card--purchased' : ''}`}>
@@ -45,17 +49,29 @@ export function GiftCard({ gift }: GiftCardProps) {
             💕 Presente já escolhido
           </p>
         ) : (
-          gift.product_url && (
-            <a
-              href={gift.product_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="gift-card__link"
-              aria-label={`Ver anúncio de ${gift.name}`}
-            >
-              Ver anúncio
-            </a>
-          )
+          <div className="gift-card__actions-row">
+            {gift.product_url && (
+              <a
+                href={gift.product_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="gift-card__link"
+                aria-label={`Ver anúncio de ${gift.name}`}
+              >
+                Ver anúncio
+              </a>
+            )}
+            {onPresent && (
+              <button
+                className="gift-card__present-btn"
+                onClick={() => onPresent(gift)}
+                disabled={isPresenting}
+                aria-label={`Marcar ${gift.name} como presenteado`}
+              >
+                {isPresenting ? '...' : '🎁 Presenteado'}
+              </button>
+            )}
+          </div>
         )}
       </div>
     </article>

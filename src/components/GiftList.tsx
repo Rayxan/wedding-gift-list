@@ -3,9 +3,11 @@ import { GiftCard } from './GiftCard';
 
 interface GiftListProps {
   gifts: Gift[];
+  onPresent?: (gift: Gift) => void;
+  presentingId?: number | null;
 }
 
-export function GiftList({ gifts }: GiftListProps) {
+export function GiftList({ gifts, onPresent, presentingId }: GiftListProps) {
   if (gifts.length === 0) {
     return (
       <div className="gift-list__empty">
@@ -18,7 +20,7 @@ export function GiftList({ gifts }: GiftListProps) {
     <ul className="gift-list" role="list">
       {gifts.map((gift) => (
         <li key={gift.id} className="gift-list__item">
-          <GiftCard gift={gift} />
+          <GiftCard gift={gift} onPresent={onPresent} presentingId={presentingId} />
         </li>
       ))}
     </ul>

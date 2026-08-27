@@ -1,23 +1,27 @@
 import { useState, useEffect } from 'react';
 import { Settings } from '../../types/settings';
-import { getSettings } from '../../services/settingsService';
+import { Gift } from '../../types/gift';
+import { getSettings, getQrCodeUrl } from '../../services/settingsService';
+import { setGiftPurchased } from '../../services/giftService';
 import { Header } from '../../components/Header';
 import { GiftList } from '../../components/GiftList';
 import { Loading } from '../../components/Loading';
+import { Modal } from '../../components/Modal';
 import { useGifts } from '../../hooks/useGifts';
 
 export function Home() {
-  const { gifts, loading: giftsLoading, error: giftsError } = useGifts();
+  const { gifts, loading: giftsLoading, error: giftsError, refetch } = useGifts();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  const [confirmGift, setConfirmGift] = useState<Gift | null>(null);
+  const [presentingId, setPresentingId] = useState<number | null>(null);
+
   useEffect(() => {
     getSettings()
       .then(setSettings)
-      .catch(() => {
-        // Settings são opcionais; fallback sem erro visível ao visitante
-      })
+      .catch(() => {})
       .finally(() => setSettingsLoading(false));
   }, []);
 
@@ -27,14 +31,31 @@ export function Home() {
       await navigator.clipboard.writeText(settings.pix_key);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
+    } catch {}
+  };
+
+  const handlePresentConfirm = async () => {
+    if (!confirmGift) return;
+    setPresentingId(confirmGift.id);
+    setConfirmGift(null);
+    try {
+      await setGiftPurchased(confirmGift.id, true);
+      await refetch();
     } catch {
-      // Clipboard API indisponível
+      // RLS vai bloquear se já estiver purchased — refetch mostra o estado real
+      await refetch();
+    } finally {
+      setPresentingId(null);
     }
   };
 
   if (settingsLoading || giftsLoading) {
     return <Loading fullscreen />;
   }
+
+  const qrCodeUrl = settings?.pix_qr_code_path
+    ? getQrCodeUrl(settings.pix_qr_code_path)
+    : null;
 
   return (
     <main>
@@ -45,17 +66,26 @@ export function Home() {
 
       {settings?.pix_key && (
         <section className="pix-section" aria-label="Chave PIX para presente">
-          <div className="pix-section__content">
-            <p className="pix-section__label">Chave PIX - Raylan</p>
-            <p className="pix-section__key">{settings.pix_key}</p>
-            <button
-              className={`pix-section__copy${copied ? ' pix-section__copy--copied' : ''}`}
-              onClick={handleCopyPix}
-              aria-label="Copiar chave PIX"
-              aria-live="polite"
-            >
-              {copied ? '✓ PIX copiado!' : 'Copiar PIX'}
-            </button>
+          <div className={`pix-section__content${qrCodeUrl ? ' pix-section__content--with-qr' : ''}`}>
+            {qrCodeUrl && (
+              <img
+                src={qrCodeUrl}
+                alt="QR Code PIX"
+                className="pix-section__qr"
+              />
+            )}
+            <div className="pix-section__info">
+              <p className="pix-section__label">Chave PIX</p>
+              <p className="pix-section__key">{settings.pix_key}</p>
+              <button
+                className={`pix-section__copy${copied ? ' pix-section__copy--copied' : ''}`}
+                onClick={handleCopyPix}
+                aria-label="Copiar chave PIX"
+                aria-live="polite"
+              >
+                {copied ? '✓ PIX copiado!' : 'Copiar PIX'}
+              </button>
+            </div>
           </div>
         </section>
       )}
@@ -66,10 +96,25 @@ export function Home() {
           {giftsError ? (
             <p className="error-message" role="alert">{giftsError}</p>
           ) : (
-            <GiftList gifts={gifts} />
+            <GiftList
+              gifts={gifts}
+              onPresent={setConfirmGift}
+              presentingId={presentingId}
+            />
           )}
         </div>
       </section>
+
+      {confirmGift && (
+        <Modal
+          title="Confirmar presente"
+          message={`Você vai dar "${confirmGift.name}" de presente? Após confirmar, somente os noivos poderão desfazer.`}
+          confirmLabel="Sim, vou dar este presente!"
+          cancelLabel="Cancelar"
+          onConfirm={handlePresentConfirm}
+          onCancel={() => setConfirmGift(null)}
+        />
+      )}
     </main>
   );
 }
