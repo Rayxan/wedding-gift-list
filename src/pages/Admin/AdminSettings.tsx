@@ -40,6 +40,8 @@ export function AdminSettings() {
     couple_name: '',
     wedding_message: '',
     pix_key: '',
+    whatsapp_groom: '',
+    whatsapp_bride: '',
   });
 
   useEffect(() => {
@@ -51,6 +53,8 @@ export function AdminSettings() {
             couple_name: data.couple_name,
             wedding_message: data.wedding_message ?? '',
             pix_key: data.pix_key ?? '',
+            whatsapp_groom: data.whatsapp_groom ?? '',
+            whatsapp_bride: data.whatsapp_bride ?? '',
           });
           if (data.pix_qr_code_path) {
             setQrPreview(getQrCodeUrl(data.pix_qr_code_path));
@@ -249,6 +253,39 @@ export function AdminSettings() {
                 />
                 <p className="form-hint">
                   Deixe em branco para não exibir a seção PIX.
+                </p>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="cfg-whatsapp-groom">
+                  🤵 WhatsApp do Noivo
+                </label>
+                <input
+                  id="cfg-whatsapp-groom"
+                  type="tel"
+                  className="form-input"
+                  value={formData.whatsapp_groom}
+                  onChange={set('whatsapp_groom')}
+                  placeholder="Ex: 5511999999999"
+                  disabled={saving}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="cfg-whatsapp-bride">
+                  👰 WhatsApp da Noiva
+                </label>
+                <input
+                  id="cfg-whatsapp-bride"
+                  type="tel"
+                  className="form-input"
+                  value={formData.whatsapp_bride}
+                  onChange={set('whatsapp_bride')}
+                  placeholder="Ex: 5511999999999"
+                  disabled={saving}
+                />
+                <p className="form-hint">
+                  Número com DDI e DDD, sem espaços. Ex: 5511999999999. Deixe em branco para não exibir.
                 </p>
               </div>
 
