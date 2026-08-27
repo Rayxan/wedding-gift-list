@@ -8,6 +8,10 @@ import {
   updateQrCodePath,
   deletePixQrCode,
   getQrCodeUrl,
+  uploadHeaderImage,
+  updateHeaderImagePath,
+  deleteHeaderImage,
+  getHeaderImageUrl,
 } from '../../services/settingsService';
 import { Button } from '../../components/Button';
 import { Loading } from '../../components/Loading';
@@ -25,6 +29,12 @@ export function AdminSettings() {
   const [qrUploading, setQrUploading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
   const qrInputRef = useRef<HTMLInputElement>(null);
+
+  const [headerFile, setHeaderFile] = useState<File | null>(null);
+  const [headerPreview, setHeaderPreview] = useState<string | null>(null);
+  const [headerUploading, setHeaderUploading] = useState(false);
+  const [headerError, setHeaderError] = useState<string | null>(null);
+  const headerInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<SettingsFormData>({
     couple_name: '',
@@ -44,6 +54,9 @@ export function AdminSettings() {
           });
           if (data.pix_qr_code_path) {
             setQrPreview(getQrCodeUrl(data.pix_qr_code_path));
+          }
+          if (data.header_image_path) {
+            setHeaderPreview(getHeaderImageUrl(data.header_image_path));
           }
         }
       })
@@ -89,10 +102,12 @@ export function AdminSettings() {
     setQrUploading(true);
     setQrError(null);
     try {
-      const path = await uploadPixQrCode(qrFile);
+      const path = await uploadPixQrCode(qrFile, settings.pix_qr_code_path);
       await updateQrCodePath(settings.id, path);
       setSettings((prev) => prev ? { ...prev, pix_qr_code_path: path } : prev);
+      setQrPreview(getQrCodeUrl(path));
       setQrFile(null);
+      if (qrInputRef.current) qrInputRef.current.value = '';
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch {
@@ -103,10 +118,10 @@ export function AdminSettings() {
   };
 
   const handleQrDelete = async () => {
-    if (!settings) return;
+    if (!settings?.pix_qr_code_path) return;
     setQrUploading(true);
     try {
-      await deletePixQrCode(settings.id);
+      await deletePixQrCode(settings.id, settings.pix_qr_code_path);
       setSettings((prev) => prev ? { ...prev, pix_qr_code_path: null } : prev);
       setQrPreview(null);
       setQrFile(null);
@@ -115,6 +130,50 @@ export function AdminSettings() {
       setQrError('Não foi possível remover o QR code.');
     } finally {
       setQrUploading(false);
+    }
+  };
+
+  const handleHeaderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setHeaderFile(file);
+    setHeaderPreview(URL.createObjectURL(file));
+    setHeaderError(null);
+  };
+
+  const handleHeaderUpload = async () => {
+    if (!headerFile || !settings) return;
+    setHeaderUploading(true);
+    setHeaderError(null);
+    try {
+      const path = await uploadHeaderImage(headerFile, settings.header_image_path);
+      await updateHeaderImagePath(settings.id, path);
+      setSettings((prev) => prev ? { ...prev, header_image_path: path } : prev);
+      setHeaderPreview(getHeaderImageUrl(path));
+      setHeaderFile(null);
+      if (headerInputRef.current) headerInputRef.current.value = '';
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      setHeaderError('Não foi possível fazer o upload da foto.');
+    } finally {
+      setHeaderUploading(false);
+    }
+  };
+
+  const handleHeaderDelete = async () => {
+    if (!settings?.header_image_path) return;
+    setHeaderUploading(true);
+    try {
+      await deleteHeaderImage(settings.id, settings.header_image_path);
+      setSettings((prev) => prev ? { ...prev, header_image_path: null } : prev);
+      setHeaderPreview(null);
+      setHeaderFile(null);
+      if (headerInputRef.current) headerInputRef.current.value = '';
+    } catch {
+      setHeaderError('Não foi possível remover a foto.');
+    } finally {
+      setHeaderUploading(false);
     }
   };
 
@@ -242,6 +301,52 @@ export function AdminSettings() {
               {qrFile && (
                 <Button onClick={handleQrUpload} loading={qrUploading}>
                   Salvar QR Code
+                </Button>
+              )}
+            </div>
+
+            {/* Foto do casal no cabeçalho */}
+            <div className="gift-form">
+              <h2 className="form-label" style={{ fontSize: '1rem', marginBottom: '1rem' }}>
+                Foto do Casal (fundo do título)
+              </h2>
+
+              {headerPreview && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <img
+                    src={headerPreview}
+                    alt="Foto do casal"
+                    style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 'var(--radius-md)', display: 'block', marginBottom: '0.5rem' }}
+                  />
+                  {settings.header_image_path && (
+                    <Button variant="danger" size="sm" onClick={handleHeaderDelete} loading={headerUploading}>
+                      Remover foto
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="cfg-header">
+                  {settings.header_image_path ? 'Substituir foto' : 'Adicionar foto'}
+                </label>
+                <input
+                  ref={headerInputRef}
+                  id="cfg-header"
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  className="form-input-file"
+                  onChange={handleHeaderChange}
+                  disabled={headerUploading}
+                />
+                <p className="form-hint">JPEG ou PNG, máximo 5 MB. A foto aparece como fundo do título na página principal.</p>
+              </div>
+
+              {headerError && <p className="form-error" role="alert">{headerError}</p>}
+
+              {headerFile && (
+                <Button onClick={handleHeaderUpload} loading={headerUploading}>
+                  Salvar Foto
                 </Button>
               )}
             </div>

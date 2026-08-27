@@ -453,6 +453,31 @@ button {
   margin: 1.5rem auto 0;
 }
 
+/* =====================================================
+   COUPLE PHOTO
+===================================================== */
+.couple-photo-section {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1.25rem 0.5rem;
+  background: linear-gradient(180deg, var(--color-bg) 0%, #F7EFE3 100%);
+}
+
+/* Portrait 2:3 — max 320px wide keeps natural proportions without stretching */
+.couple-photo {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 3px solid rgba(181, 137, 90, 0.25);
+  display: block;
+}
+
+@media (min-width: 600px) {
+  .couple-photo { max-width: 380px; }
+}
+
 .site-header__ornament {
   font-size: 1.25rem;
   color: var(--color-primary);

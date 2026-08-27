@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Settings } from '../../types/settings';
 import { Gift } from '../../types/gift';
-import { getSettings, getQrCodeUrl } from '../../services/settingsService';
+import { getSettings, getQrCodeUrl, getHeaderImageUrl } from '../../services/settingsService';
 import { setGiftPurchased } from '../../services/giftService';
 import { Header } from '../../components/Header';
 import { GiftList } from '../../components/GiftList';
@@ -57,12 +57,26 @@ export function Home() {
     ? getQrCodeUrl(settings.pix_qr_code_path)
     : null;
 
+  const headerImageUrl = settings?.header_image_path
+    ? getHeaderImageUrl(settings.header_image_path)
+    : null;
+
   return (
     <main>
       <Header
         coupleName={settings?.couple_name ?? 'Lista de Presentes'}
         weddingMessage={settings?.wedding_message}
       />
+
+      {headerImageUrl && (
+        <div className="couple-photo-section">
+          <img
+            src={headerImageUrl}
+            alt={`Foto de ${settings?.couple_name ?? 'o casal'}`}
+            className="couple-photo"
+          />
+        </div>
+      )}
 
       {settings?.pix_key && (
         <section className="pix-section" aria-label="Chave PIX para presente">
