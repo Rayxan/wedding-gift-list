@@ -9,6 +9,7 @@ import { GiftFilters, priceInRange, PurchasedFilter } from '../../components/Gif
 import { SearchBar } from '../../components/SearchBar';
 import { Loading } from '../../components/Loading';
 import { Modal } from '../../components/Modal';
+import { PresentModal } from '../../components/PresentModal';
 import { useGifts } from '../../hooks/useGifts';
 
 export function Home() {
@@ -181,13 +182,13 @@ export function Home() {
       </section>
 
       {confirmGift && (
-        <Modal
-          title="Confirmar presente"
-          message={`Deseja presentear "${confirmGift.name}" ? Após confirmar, somente os noivos poderão desfazer.`}
-          confirmLabel="Sim, vou dar este presente!"
-          cancelLabel="Cancelar"
+        <PresentModal
+          gift={confirmGift}
+          pixKey={settings?.pix_key ?? null}
+          qrCodeUrl={qrCodeUrl}
+          loading={presentingId === confirmGift.id}
           onConfirm={handlePresentConfirm}
-          onCancel={() => setConfirmGift(null)}
+          onClose={() => setConfirmGift(null)}
         />
       )}
 
