@@ -22,7 +22,19 @@ function groupGifts(gifts: Gift[]): { label: string; slug: string; items: Gift[]
     map.get(key)!.push(gift);
   }
 
+  // Merge null-category gifts into existing "Outros" bucket (any case) or create one
+  if (uncategorized.length > 0) {
+    const outrosKey = Array.from(map.keys()).find((k) => k.toLowerCase() === 'outros');
+    if (outrosKey) {
+      map.get(outrosKey)!.push(...uncategorized);
+    } else {
+      map.set('Outros', uncategorized);
+    }
+  }
+
   const sorted = Array.from(map.keys()).sort((a, b) => {
+    if (a.toLowerCase() === 'outros') return 1;
+    if (b.toLowerCase() === 'outros') return -1;
     const ai = CATEGORY_ORDER.findIndex((c) => c.toLowerCase() === a.toLowerCase());
     const bi = CATEGORY_ORDER.findIndex((c) => c.toLowerCase() === b.toLowerCase());
     if (ai >= 0 && bi >= 0) return ai - bi;
@@ -31,17 +43,11 @@ function groupGifts(gifts: Gift[]): { label: string; slug: string; items: Gift[]
     return a.localeCompare(b, 'pt-BR');
   });
 
-  const result = sorted.map((cat) => ({
+  return sorted.map((cat) => ({
     label: cat,
     slug: categorySlug(cat),
     items: map.get(cat)!,
   }));
-
-  if (uncategorized.length > 0) {
-    result.push({ label: 'Outros', slug: 'outros', items: uncategorized });
-  }
-
-  return result;
 }
 
 interface GiftSectionsProps {
