@@ -68,7 +68,7 @@ export function GiftCard({ gift, onPresent, presentingId }: GiftCardProps) {
                 disabled={isPresenting}
                 aria-label={`Marcar ${gift.name} como presenteado`}
               >
-                {isPresenting ? '...' : '🎁 Presenteado'}
+                {isPresenting ? '...' : '🎁 Presentear'}
               </button>
             )}
           </div>
