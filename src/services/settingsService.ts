@@ -39,9 +39,12 @@ export async function uploadPixQrCode(file: File): Promise<string> {
   const validationError = validateImage(file);
   if (validationError) throw new Error(validationError);
 
+  // Remove arquivo anterior antes de subir novo para evitar conflito de upsert
+  await supabase.storage.from(STORAGE_BUCKET).remove([QR_CODE_PATH]);
+
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKET)
-    .upload(QR_CODE_PATH, file, { cacheControl: '3600', upsert: true });
+    .upload(QR_CODE_PATH, file, { cacheControl: '3600', upsert: false });
 
   if (error) throw error;
   return data.path;
