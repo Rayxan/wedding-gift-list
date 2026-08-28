@@ -17,3 +17,11 @@ export function generateUniqueFileName(originalName: string): string {
   const random = Math.random().toString(36).substring(2, 8);
   return `gift-${timestamp}-${random}.${ext}`;
 }
+
+export function getImageFromClipboard(clipboardData: DataTransfer | null): File | null {
+  if (!clipboardData?.items) return null;
+  for (const item of Array.from(clipboardData.items)) {
+    if (item.type.startsWith('image/')) return item.getAsFile();
+  }
+  return null;
+}

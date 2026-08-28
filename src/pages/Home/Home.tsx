@@ -186,6 +186,8 @@ export function Home() {
           gift={confirmGift}
           pixKey={settings?.pix_key ?? null}
           qrCodeUrl={qrCodeUrl}
+          whatsappGroom={settings?.whatsapp_groom ?? null}
+          whatsappBride={settings?.whatsapp_bride ?? null}
           loading={presentingId === confirmGift.id}
           onConfirm={handlePresentConfirm}
           onClose={() => setConfirmGift(null)}

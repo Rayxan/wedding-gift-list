@@ -1,20 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings, SettingsFormData } from '../../types/settings';
-import {
-  getSettings,
-  updateSettings,
-  uploadPixQrCode,
-  updateQrCodePath,
-  deletePixQrCode,
-  getQrCodeUrl,
-  uploadHeaderImage,
-  updateHeaderImagePath,
-  deleteHeaderImage,
-  getHeaderImageUrl,
-} from '../../services/settingsService';
+import { getSettings, updateSettings, uploadPixQrCode, updateQrCodePath, deletePixQrCode, getQrCodeUrl, uploadHeaderImage, updateHeaderImagePath, deleteHeaderImage, getHeaderImageUrl, } from '../../services/settingsService';
 import { Button } from '../../components/Button';
 import { Loading } from '../../components/Loading';
+import { getImageFromClipboard } from '../../utils/image';
 
 export function AdminSettings() {
   const navigate = useNavigate();
@@ -97,10 +87,12 @@ export function AdminSettings() {
 
   const handleQrChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    setQrFile(file);
-    setQrPreview(URL.createObjectURL(file));
-    setQrError(null);
+    if (file) { setQrFile(file); setQrPreview(URL.createObjectURL(file)); setQrError(null); }
+  };
+
+  const handleQrPaste = (e: React.ClipboardEvent) => {
+    const file = getImageFromClipboard(e.clipboardData);
+    if (file) { setQrFile(file); setQrPreview(URL.createObjectURL(file)); setQrError(null); e.preventDefault(); }
   };
 
   const handleQrUpload = async () => {
@@ -141,10 +133,12 @@ export function AdminSettings() {
 
   const handleHeaderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    setHeaderFile(file);
-    setHeaderPreview(URL.createObjectURL(file));
-    setHeaderError(null);
+    if (file) { setHeaderFile(file); setHeaderPreview(URL.createObjectURL(file)); setHeaderError(null); }
+  };
+
+  const handleHeaderPaste = (e: React.ClipboardEvent) => {
+    const file = getImageFromClipboard(e.clipboardData);
+    if (file) { setHeaderFile(file); setHeaderPreview(URL.createObjectURL(file)); setHeaderError(null); e.preventDefault(); }
   };
 
   const handleHeaderUpload = async () => {
@@ -335,7 +329,7 @@ export function AdminSettings() {
                 </div>
               )}
 
-              <div className="form-group">
+              <div className="form-group upload-zone" tabIndex={0} onPaste={handleQrPaste} aria-label="Upload QR Code — Ctrl+V para colar">
                 <label className="form-label" htmlFor="cfg-qr">
                   {settings.pix_qr_code_path ? 'Substituir imagem' : 'Adicionar QR Code'}
                 </label>
@@ -348,7 +342,7 @@ export function AdminSettings() {
                   onChange={handleQrChange}
                   disabled={qrUploading}
                 />
-                <p className="form-hint">JPEG ou PNG, máximo 5 MB.</p>
+                <p className="form-hint">JPEG ou PNG, máx 5 MB — ou <kbd>Ctrl+V</kbd> para colar.</p>
               </div>
 
               {qrError && <p className="form-error" role="alert">{qrError}</p>}
@@ -381,7 +375,7 @@ export function AdminSettings() {
                 </div>
               )}
 
-              <div className="form-group">
+              <div className="form-group upload-zone" tabIndex={0} onPaste={handleHeaderPaste} aria-label="Upload foto do casal — Ctrl+V para colar">
                 <label className="form-label" htmlFor="cfg-header">
                   {settings.header_image_path ? 'Substituir foto' : 'Adicionar foto'}
                 </label>
@@ -394,7 +388,7 @@ export function AdminSettings() {
                   onChange={handleHeaderChange}
                   disabled={headerUploading}
                 />
-                <p className="form-hint">JPEG ou PNG, máximo 5 MB. A foto aparece como fundo do título na página principal.</p>
+                <p className="form-hint">JPEG ou PNG, máx 5 MB — ou <kbd>Ctrl+V</kbd> para colar.</p>
               </div>
 
               {headerError && <p className="form-error" role="alert">{headerError}</p>}

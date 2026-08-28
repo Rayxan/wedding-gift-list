@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Gift, GiftFormData } from '../types/gift';
 import { Button } from './Button';
-import { validateImage } from '../utils/image';
+import { validateImage, getImageFromClipboard } from '../utils/image';
 import { getGiftImageUrl } from '../services/giftService';
 
 interface GiftFormProps {
@@ -59,8 +59,10 @@ export function GiftForm({ initialData, onSubmit, loading = false }: GiftFormPro
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (file) handleImageFile(file);
+  };
 
+  const handleImageFile = (file: File) => {
     const err = validateImage(file);
     if (err) {
       setErrors((prev) => ({ ...prev, image: err }));
@@ -71,6 +73,11 @@ export function GiftForm({ initialData, onSubmit, loading = false }: GiftFormPro
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
     setImageRemoved(false);
+  };
+
+  const handleImagePaste = (e: React.ClipboardEvent) => {
+    const file = getImageFromClipboard(e.clipboardData);
+    if (file) { handleImageFile(file); e.preventDefault(); }
   };
 
   const handleRemoveImage = () => {
@@ -196,7 +203,12 @@ export function GiftForm({ initialData, onSubmit, loading = false }: GiftFormPro
       </div>
 
       {/* Imagem */}
-      <div className="form-group">
+      <div
+        className="form-group upload-zone"
+        tabIndex={0}
+        onPaste={handleImagePaste}
+        aria-label="Área de upload de imagem — Ctrl+V para colar"
+      >
         <label className="form-label" htmlFor="gf-image">Imagem</label>
 
         {imagePreview && (
@@ -226,7 +238,7 @@ export function GiftForm({ initialData, onSubmit, loading = false }: GiftFormPro
         {errors.image && (
           <p className="form-error" role="alert">{errors.image}</p>
         )}
-        <p className="form-hint">JPEG ou PNG, máximo 5 MB.</p>
+        <p className="form-hint">JPEG ou PNG, máx 5 MB — ou <kbd>Ctrl+V</kbd> para colar.</p>
       </div>
 
       <div className="form-actions">
