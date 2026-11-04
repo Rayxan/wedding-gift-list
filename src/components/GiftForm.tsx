@@ -152,6 +152,8 @@ export function GiftForm({ initialData, onSubmit, loading = false }: GiftFormPro
           <option value="Banheiro" />
           <option value="Eletrodomésticos" />
           <option value="Eletrônicos" />
+          <option value="Queridinhos/Favoritos" />
+          <option value="Natal" />
           <option value="Decoração" />
           <option value="Outros" />
         </datalist>
