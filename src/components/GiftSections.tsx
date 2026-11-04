@@ -1,7 +1,7 @@
 import { Gift } from '../types/gift';
 import { GiftCard } from './GiftCard';
 
-const CATEGORY_ORDER = ['Sala', 'Cozinha', 'Banheiro', 'Quarto', 'Mordomias', 'Decoração', 'Queridinhos/Favoritos', 'Natal'];
+const CATEGORY_ORDER = ['Queridinhos/Favoritos', 'Sala', 'Cozinha', 'Banheiro', 'Quarto', 'Mordomias', 'Decoração', 'Natal'];
 
 export function categorySlug(cat: string): string {
   return cat
