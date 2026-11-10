@@ -22,6 +22,7 @@ export function CreateGift() {
           product_url: data.product_url.trim() || null,
           category: data.category.trim() || null,
           purchased: false,
+          owner: null,
           image_path: null,
         },
         imageFile

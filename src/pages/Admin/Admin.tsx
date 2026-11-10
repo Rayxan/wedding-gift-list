@@ -180,6 +180,11 @@ export function Admin() {
                     >
                       {gift.purchased ? 'Escolhido' : 'Disponível'}
                     </span>
+                    {gift.purchased && gift.owner && (
+                      <span className="admin-gift-card__owner">
+                        Presenteado por: {gift.owner}
+                      </span>
+                    )}
                   </div>
 
                   <div className="admin-gift-card__actions">

@@ -78,10 +78,18 @@ export async function deleteGift(id: number, imagePath?: string | null): Promise
   if (error) throw error;
 }
 
-export async function setGiftPurchased(id: number, purchased: boolean): Promise<Gift> {
+export async function setGiftPurchased(
+  id: number,
+  purchased: boolean,
+  owner: string | null = null
+): Promise<Gift> {
   const { data, error } = await supabase
     .from('gifts')
-    .update({ purchased, updated_at: new Date().toISOString() })
+    .update({
+      purchased,
+      owner: purchased ? owner : null,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', id)
     .select()
     .single();

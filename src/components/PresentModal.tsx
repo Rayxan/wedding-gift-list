@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { Gift } from '../types/gift';
 import { Button } from './Button';
 import { formatCurrency } from '../utils/formatCurrency';
@@ -7,10 +7,8 @@ interface PresentModalProps {
   gift: Gift;
   pixKey: string | null;
   qrCodeUrl: string | null;
-  whatsappGroom: string | null;
-  whatsappBride: string | null;
   loading: boolean;
-  onConfirm: () => void;
+  onConfirm: (owner: string) => Promise<void>;
   onClose: () => void;
 }
 
@@ -18,26 +16,23 @@ export function PresentModal({
   gift,
   pixKey,
   qrCodeUrl,
-  whatsappGroom,
-  whatsappBride,
   loading,
   onConfirm,
   onClose,
 }: PresentModalProps) {
-  const [showDesistoConfirm, setShowDesistoConfirm] = useState(false);
-  const [showAvise, setShowAvise] = useState(false);
+  const [owner, setOwner] = useState('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !loading) {
-        if (showDesistoConfirm) setShowDesistoConfirm(false);
-        else onClose();
+        onClose();
       }
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [onClose, loading, showDesistoConfirm]);
+  }, [onClose, loading]);
 
   const handleCopyPix = async () => {
     if (!pixKey) return;
@@ -48,36 +43,21 @@ export function PresentModal({
     } catch {}
   };
 
-  if (showDesistoConfirm) {
-    return (
-      <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="desisto-title">
-        <div className="modal">
-          <h2 id="desisto-title" className="modal__title">Vai mesmo desistir? 😢</h2>
-          <p className="modal__message">
-            Você quer mesmo desistir da compra de <strong>{gift.name}</strong>?
-          </p>
-          <div className="modal__actions">
-            <Button variant="ghost" onClick={() => setShowDesistoConfirm(false)}>
-              Não, vou presentear!
-            </Button>
-            <Button variant="secondary" onClick={onClose}>
-              Sim, desisto
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const trimmedOwner = owner.trim();
+    if (trimmedOwner.length < 3) {
+      setSubmitError('Digitar no mínimo 3 letras');
+      return;
+    }
 
-  if (showAvise) {
-    return (
-      <AviseModal
-        whatsappGroom={whatsappGroom}
-        whatsappBride={whatsappBride}
-        onClose={onClose}
-      />
-    );
-  }
+    setSubmitError(null);
+    try {
+      await onConfirm(trimmedOwner);
+    } catch {
+      setSubmitError('Não foi possível confirmar o presente. Tente novamente.');
+    }
+  };
 
   return (
     <div
@@ -87,11 +67,44 @@ export function PresentModal({
       aria-labelledby="present-title"
       onClick={(e) => { if (e.target === e.currentTarget && !loading) onClose(); }}
     >
-      <div className="modal present-modal">
+      <form className="modal present-modal" onSubmit={handleSubmit}>
         <h2 id="present-title" className="modal__title">Confirmar presente</h2>
         <p className="modal__message">
           Você vai dar <strong>{gift.name}</strong> ({formatCurrency(gift.price)}) de presente?
         </p>
+
+        <div className="present-modal__name-field">
+          <label htmlFor="present-owner" className="form-label">
+            Seu nome <span aria-hidden="true">*</span>
+          </label>
+          <input
+            id="present-owner"
+            className="form-input"
+            type="text"
+            value={owner}
+            onChange={(e) => {
+              setOwner(e.target.value);
+              if (submitError) setSubmitError(null);
+            }}
+            placeholder="Digite seu nome"
+            maxLength={30}
+            minLength={3}
+            required
+            autoFocus
+            disabled={loading}
+            aria-describedby={`present-owner-hint${submitError ? ' present-owner-error' : ''}`}
+          />
+          {owner.trim().length < 3 && (
+            <p id="present-owner-hint" className="form-error" role="alert">
+              Digitar no mínimo 3 letras
+            </p>
+          )}
+          {submitError && (
+            <p id="present-owner-error" className="form-error" role="alert">
+              {submitError}
+            </p>
+          )}
+        </div>
 
         {(pixKey || qrCodeUrl) && (
           <div className="present-modal__pix">
@@ -121,18 +134,66 @@ export function PresentModal({
         </p>
 
         <div className="present-modal__actions">
-          <button
-            className="present-modal__desisto"
-            onClick={() => setShowDesistoConfirm(true)}
-            disabled={loading}
-          >
-            Desisto da compra
-          </button>
+          <Button variant="ghost" type="button" onClick={onClose} disabled={loading}>
+            Cancelar Presente
+          </Button>
           <Button
-            onClick={() => { onConfirm(); setShowAvise(true); }}
+            type="submit"
+            disabled={owner.trim().length < 3}
             loading={loading}
           >
-            Sim, vou presentear! 🎁
+            Confirmar Presente 🎁
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export function PresentSuccessModal({
+  gift,
+  owner,
+  whatsappGroom,
+  whatsappBride,
+  onClose,
+}: {
+  gift: Gift;
+  owner: string;
+  whatsappGroom: string | null;
+  whatsappBride: string | null;
+  onClose: () => void;
+}) {
+  const [showAvise, setShowAvise] = useState(false);
+
+  if (showAvise) {
+    return (
+      <AviseModal
+        whatsappGroom={whatsappGroom}
+        whatsappBride={whatsappBride}
+        onClose={onClose}
+      />
+    );
+  }
+
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="success-title">
+      <div className="modal present-modal present-modal--success">
+        <div className="gift-opening" aria-hidden="true">
+          <span className="gift-opening__lid">🎁</span>
+          <span className="gift-opening__sparkle gift-opening__sparkle--one">✦</span>
+          <span className="gift-opening__sparkle gift-opening__sparkle--two">✦</span>
+          <span className="gift-opening__sparkle gift-opening__sparkle--three">✦</span>
+        </div>
+        <h2 id="success-title" className="modal__title">PRESENTE ENVIADO COM SUCESSO 🎉</h2>
+        <p className="modal__message">
+          Obrigado, <strong>{owner}</strong>! O presente <strong>{gift.name}</strong> foi registrado.
+        </p>
+        <div className="present-modal__success-actions">
+          <Button onClick={() => setShowAvise(true)}>
+            Avise os noivos 💌
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Fechar
           </Button>
         </div>
       </div>

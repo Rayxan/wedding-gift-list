@@ -6,6 +6,7 @@ export interface Gift {
   image_path: string | null;
   product_url: string | null;
   purchased: boolean;
+  owner: string | null;
   category: string | null;
   created_at: string;
   updated_at: string;

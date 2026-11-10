@@ -9,7 +9,7 @@ import { GiftFilters, priceInRange, PurchasedFilter } from '../../components/Gif
 import { SearchBar } from '../../components/SearchBar';
 import { Loading } from '../../components/Loading';
 import { Modal } from '../../components/Modal';
-import { PresentModal } from '../../components/PresentModal';
+import { PresentModal, PresentSuccessModal } from '../../components/PresentModal';
 import { useGifts } from '../../hooks/useGifts';
 
 export function Home() {
@@ -19,6 +19,7 @@ export function Home() {
   const [copied, setCopied] = useState(false);
 
   const [confirmGift, setConfirmGift] = useState<Gift | null>(null);
+  const [successGift, setSuccessGift] = useState<{ gift: Gift; owner: string } | null>(null);
   const [presentingId, setPresentingId] = useState<number | null>(null);
   const [selectedPriceRange, setSelectedPriceRange] = useState('all');
   const [selectedPurchased, setSelectedPurchased] = useState<PurchasedFilter>('all');
@@ -48,16 +49,18 @@ export function Home() {
     } catch {}
   };
 
-  const handlePresentConfirm = async () => {
+  const handlePresentConfirm = async (owner: string): Promise<void> => {
     if (!confirmGift) return;
-    setPresentingId(confirmGift.id);
-    setConfirmGift(null);
+    const gift = confirmGift;
+    setPresentingId(gift.id);
     try {
-      await setGiftPurchased(confirmGift.id, true);
+      await setGiftPurchased(gift.id, true, owner);
       await refetch();
-    } catch {
-      // RLS vai bloquear se já estiver purchased — refetch mostra o estado real
+      setConfirmGift(null);
+      setSuccessGift({ gift, owner });
+    } catch (error) {
       await refetch();
+      throw error;
     } finally {
       setPresentingId(null);
     }
@@ -186,11 +189,19 @@ export function Home() {
           gift={confirmGift}
           pixKey={settings?.pix_key ?? null}
           qrCodeUrl={qrCodeUrl}
-          whatsappGroom={settings?.whatsapp_groom ?? null}
-          whatsappBride={settings?.whatsapp_bride ?? null}
           loading={presentingId === confirmGift.id}
           onConfirm={handlePresentConfirm}
           onClose={() => setConfirmGift(null)}
+        />
+      )}
+
+      {successGift && (
+        <PresentSuccessModal
+          gift={successGift.gift}
+          owner={successGift.owner}
+          whatsappGroom={settings?.whatsapp_groom ?? null}
+          whatsappBride={settings?.whatsapp_bride ?? null}
+          onClose={() => setSuccessGift(null)}
         />
       )}
 
